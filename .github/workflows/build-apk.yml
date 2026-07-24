@@ -1,0 +1,21 @@
+name: Gerar APK da Stela Nexus
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar dependências
+        run: |
+          sudo apt update -y
+          sudo apt install -y zip openjdk-17-jdk zlib1g-dev
+          pip install buildozer
+      - name: Compilar APK
+        run: buildozer android debug
+      - name: Disponibilizar APK pronto
+        uses: actions/upload-artifact@v4
+        with:
+          name: Stela-Nexus-APK
+          path: bin/*.apk
+          
