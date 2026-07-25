@@ -6,30 +6,33 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-      - name: Pegar código do projeto
+      - name: Pegar os arquivos do projeto
         uses: actions/checkout@v4
 
-      - name: Instalar dependências do sistema
+      - name: Instalar pacotes do sistema
         run: |
-          sudo apt-get update -y
-          sudo apt-get upgrade -y
-          sudo apt-get install -y zip unzip openjdk-17-jdk wget git zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+          sudo apt update -y
+          sudo apt full-upgrade -y
+          sudo apt install -y zip openjdk-17-jdk zlib1g-dev libncurses5-dev libtinfo6 cmake libffi-dev libssl-dev autoconf automake libtool pkg-config
 
-      - name: Instalar Python e Buildozer
+      - name: Configurar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      - run: pip install --upgrade pip setuptools wheel
-      - run: pip install buildozer cython==0.29.37
+          python-version: '3.10'
 
-      - name: Gerar o APK
+      - name: Instalar ferramentas de compilação
+        run: |
+          pip install --upgrade pip setuptools wheel
+          pip install buildozer cython
+
+      - name: Compilar o APK
         run: buildozer android debug
 
-      - name: Salvar APK pronto
+      - name: Salvar o APK pronto
         uses: actions/upload-artifact@v4
         with:
-          name: Stela-Nexus-APK-FINAL
+          name: Stela-Nexus-APK
           path: bin/*.apk
           retention-days: 30
