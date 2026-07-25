@@ -7,98 +7,85 @@ from kivy.core.window import Window
 import requests
 from bs4 import BeautifulSoup
 
-# Cores da interface: lilás degradê
+# Fundo da tela: lilás escuro
 Window.clearcolor = (0.18, 0.06, 0.25, 1)
 
-class StelaNexusTela(BoxLayout):
+class StelaTela(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.orientation = 'vertical'
         self.padding = 25
         self.spacing = 18
 
-        # Cabeçalho oficial
+        # Cabeçalho
         self.add_widget(Label(
-            text='✨ STELA NEXUS ✨\nIdealizador: Alessandro Lima\nCriadores: Alessandro Lima e Dola IA',
-            font_size='22sp',
+            text='STELA NEXUS\nIdealizador: Alessandro Lima\nCriadores: Alessandro Lima e Dola IA',
+            font_size='20sp',
             color=(0.9, 0.75, 1, 1),
             halign='center',
             bold=True
         ))
 
         # Área de respostas
-        self.area_resp = TextInput(
-            text='Olá! Eu sou a Stela Nexus 🤖\nPergunte-me qualquer coisa:\n✅ Busco na minha memória\n✅ Pesquiso na Wikipédia\n✅ Pesquiso no DuckDuckGo',
-            font_size='17sp',
+        self.resposta = TextInput(
+            text='Olá! Eu sou a Stela Nexus.\nPergunte-me qualquer coisa.',
+            font_size='16sp',
             background_color=(0.22, 0.12, 0.3, 1),
             foreground_color=(0.85, 0.7, 1, 1),
             readonly=True,
-            size_hint_y=0.65
+            size_hint_y=0.6
         )
-        self.add_widget(self.area_resp)
+        self.add_widget(self.resposta)
 
         # Caixa de pergunta
-        self.campo_pergunta = TextInput(
-            hint_text='Digite sua pergunta aqui...',
+        self.pergunta = TextInput(
+            hint_text='Digite sua pergunta...',
             font_size='16sp',
             background_color=(0.1, 0.18, 0.3, 1),
             foreground_color=(0.7, 0.85, 1, 1),
             size_hint_y=0.12
         )
-        self.add_widget(self.campo_pergunta)
+        self.add_widget(self.pergunta)
 
-        # Botão de enviar
-        self.botao_enviar = Button(
-            text='🔍 PERGUNTAR',
-            font_size='19sp',
+        # Botão de envio
+        self.botao = Button(
+            text='PERGUNTAR',
+            font_size='18sp',
             background_color=(0.9, 0.45, 0.15, 1),
             color=(1,1,1,1),
             bold=True,
             size_hint_y=0.1
         )
-        self.botao_enviar.bind(on_press=self.processar_pergunta)
-        self.add_widget(self.botao_enviar)
+        self.botao.bind(on_press=self.buscar)
+        self.add_widget(self.botao)
 
-    def processar_pergunta(self, instancia):
-        pergunta = self.campo_pergunta.text.strip()
-        if not pergunta:
-            self.area_resp.text = '⚠️ Escreva uma pergunta primeiro!'
+    def buscar(self, instancia):
+        texto = self.pergunta.text.strip()
+        if not texto:
             return
-        
-        self.area_resp.text = '⏳ Buscando informação...'
-        self.campo_pergunta.text = ''
+        self.resposta.text = 'Buscando informação...'
+        self.pergunta.text = ''
 
-        # Tenta Wikipédia primeiro
-        resposta = self.buscar_wikipedia(pergunta)
-        if not resposta:
-            resposta = self.buscar_duckduckgo(pergunta)
-        
-        self.area_resp.text = f'📜 RESPOSTA:\n\n{resposta}'
-
-    def buscar_wikipedia(self, termo):
+        # Busca na Wikipédia
         try:
-            url = f'https://pt.wikipedia.org/w/index.php?search={termo.replace(" ", "+")}'
-            r = requests.get(url, timeout=12)
+            url = f'https://pt.wikipedia.org/w/index.php?search={texto.replace(" ", "+")}'
+            cabecalho = {'User-Agent': 'Mozilla/5.0 (Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36'}
+            r = requests.get(url, headers=cabecalho, timeout=15)
             soup = BeautifulSoup(r.text, 'html.parser')
-            paragrafo = soup.find('div', class_='mw-body-content').find('p')
-            return paragrafo.get_text(strip=True)[:1500] + '...' if paragrafo else None
-        except:
-            return None
-
-    def buscar_duckduckgo(self, termo):
-        try:
-            url = f'https://duckduckgo.com/html/?q={termo}'
-            r = requests.get(url, timeout=12)
-            soup = BeautifulSoup(r.text, 'html.parser')
-            trecho = soup.find('a', class_='result__snippet')
-            return trecho.get_text(strip=True)[:1500] if trecho else '❌ Não encontrei informação sobre isso.'
-        except:
-            return '❌ Erro ao conectar com a internet.'
+            conteudo = soup.find('div', class_='mw-body-content')
+            if conteudo:
+                paragrafo = conteudo.find('p')
+                if paragrafo:
+                    texto_final = paragrafo.get_text(strip=True)[:1200]
+                    self.resposta.text = texto_final if texto_final else 'Encontrei o tema, mas não há resumo curto disponível.'
+                    return
+            self.resposta.text = 'Não encontrei informação sobre esse assunto.'
+        except Exception as e:
+            self.resposta.text = f'Não consegui buscar no momento: {str(e)}'
 
 class StelaApp(App):
     def build(self):
-        return StelaNexusTela()
+        return StelaTela()
 
 if __name__ == '__main__':
     StelaApp().run()
-  
