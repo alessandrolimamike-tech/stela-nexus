@@ -11,33 +11,38 @@ jobs:
       - name: Pegar arquivos do projeto
         uses: actions/checkout@v4
 
-      - name: Atualizar lista de pacotes
-        run: sudo apt update -y
-
-      - name: Instalar todas as dependências
+      - name: Atualizar sistema
         run: |
-          sudo apt install -y zip openjdk-17-jdk zlib1g-dev libncurses5-dev libtinfo6 cmake libffi-dev libssl-dev autoconf automake libtool pkg-config libaidl-dev
+          sudo apt update -y
+          sudo apt full-upgrade -y
+
+      - name: Instalar TODAS as dependências
+        run: |
+          sudo apt install -y zip unzip openjdk-17-jdk zlib1g-dev libncurses5-dev libtinfo6 cmake libffi-dev libssl-dev autoconf automake libtool pkg-config libaidl-dev git
 
       - name: Configurar Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Instalar ferramentas
+      - name: Instalar ferramentas de compilação
         run: |
           pip install --upgrade pip setuptools wheel
-          pip install buildozer cython
+          pip install buildozer cython==0.29.37
 
-      - name: Aceitar licenças do Android SDK
+      - name: Aceitar licenças do Android
         run: |
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
           yes | sdkmanager --licenses || true
 
-      - name: Gerar APK sem confirmações
-        run: buildozer android debug -- --no-accept-licenses
+      - name: Gerar APK
+        run: buildozer android debug
 
-      - name: Salvar arquivo pronto
+      - name: Salvar APK pronto
         uses: actions/upload-artifact@v4
         with:
           name: Stela-Nexus-APK
           path: bin/*.apk
           retention-days: 30
+          
