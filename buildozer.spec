@@ -4,7 +4,7 @@ package.name = stelanexus
 package.domain = org.alessandrolima
 version = 1.0.0
 source.dir = .
-requirements = python3,kivy,requests,beautifulsoup4,lxml
+requirements = python3,kivy==2.2.1,requests,beautifulsoup4,lxml
 orientation = portrait
 fullscreen = 0
 android.permissions = INTERNET
